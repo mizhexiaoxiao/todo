@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"os"
 	"todo/models"
@@ -10,6 +11,9 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
+//go:embed template/* static/*
+var f embed.FS
+
 type Todo struct {
 	ID     int    `json:"id"`
 	Title  string `json:"title"`
@@ -18,7 +22,7 @@ type Todo struct {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("Usage：./bubble conf/config.ini")
+		fmt.Println("Usage：./todo conf/config.ini")
 		return
 	}
 	// 加载配置文件
@@ -35,7 +39,7 @@ func main() {
 	defer models.Close()
 	//程序启动自动创建模型表
 	models.DB.AutoMigrate(&models.Todo{})
-	r := routers.SetupRouter()
+	r := routers.SetupRouter(&f)
 	port := fmt.Sprintf(":%d", settings.Conf.Port)
 	r.Run(port) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
