@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"todo/models"
 	"todo/routers"
+	"todo/settings"
 
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
@@ -13,18 +16,18 @@ type Todo struct {
 	Status bool   `json:"status"`
 }
 
-// func InitMysql() (DB *gorm.DB, err error) {
-// 	DB, err = gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/t_todo?charset=utf8mb4&parseTime=True&loc=Local")
-// 	if err != nil {
-// 		.Println(err)
-// 		return
-// 	}
-// 	return
-// }
-
 func main() {
+	if len(os.Args) < 2 {
+		fmt.Println("Usage：./bubble conf/config.ini")
+		return
+	}
+	// 加载配置文件
+	if err := settings.Init(os.Args[1]); err != nil {
+		fmt.Printf("load config from file failed, err:%v\n", err)
+		return
+	}
 	//连接数据库
-	err := models.InitMysql()
+	err := models.InitMysql(settings.Conf.MySQLConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -33,9 +36,6 @@ func main() {
 	//程序启动自动创建模型表
 	models.DB.AutoMigrate(&models.Todo{})
 	r := routers.SetupRouter()
-	r.Run(":9000") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	port := fmt.Sprintf(":%d", settings.Conf.Port)
+	r.Run(port) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
-
-// func CreateATodo(todo *Todo)(err error){
-
-// }

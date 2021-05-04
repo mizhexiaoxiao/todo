@@ -1,6 +1,9 @@
 package models
 
 import (
+	"fmt"
+	"todo/settings"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
@@ -13,8 +16,10 @@ type Todo struct {
 	Status bool   `json:"status"`
 }
 
-func InitMysql() (err error) {
-	DB, err = gorm.Open("mysql", "root:123456@(127.0.0.1:3306)/t_todo?charset=utf8mb4&parseTime=True&loc=Local")
+func InitMysql(config *settings.MySQLConfig) (err error) {
+	dsn := fmt.Sprintf("%s:%s@(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		config.User, config.Password, config.Host, config.Port, config.DB)
+	DB, err = gorm.Open("mysql", dsn)
 	if err != nil {
 		return
 	}
